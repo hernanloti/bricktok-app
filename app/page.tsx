@@ -12,6 +12,17 @@ function formatNumber(n: number, digits = 2) {
   });
 }
 
+// ---------- Tipos ----------
+type Side = "ask" | "bid";
+type Row = { id: string; side: Side; price: number; qty: number };
+type Trade = {
+  id: string;
+  price: number;
+  qty: number;
+  time: string;
+  side: "buy" | "sell";
+};
+
 // ---------- Mock Data ----------
 const TOKEN = {
   symbol: "BTK-ROSARIO-001",
@@ -22,32 +33,25 @@ const TOKEN = {
   rentAPR: 9.2, // % anual estimado por alquiler
   fees: 0.5, // % fee trading
 };
-type Row = { id: string; side: "ask" | "bid"; price: number; qty: number };
 
 function seedBook() {
   const mid = TOKEN.price;
   const asks: Row[] = Array.from({ length: 16 }, (_, i) => ({
     price: mid + 1 + i * 2,
     qty: Math.floor(20 + Math.random() * 120),
-    side: "ask",
+    side: "ask" as const,
     id: `a${i}`,
   })).sort((a, b) => a.price - b.price);
+
   const bids: Row[] = Array.from({ length: 16 }, (_, i) => ({
     price: mid - 1 - i * 2,
     qty: Math.floor(20 + Math.random() * 120),
-    side: "bid",
+    side: "bid" as const,
     id: `b${i}`,
   })).sort((a, b) => b.price - a.price);
+
   return { asks, bids };
 }
-
-type Trade = {
-  id: string;
-  price: number;
-  qty: number;
-  time: string;
-  side: "buy" | "sell";
-};
 
 // pseudo stream
 function useSimulatedFeed(
@@ -147,7 +151,7 @@ function TokenInfoCard() {
   );
 }
 
-function DepthBar({ side, pct }: { side: "ask" | "bid"; pct: number }) {
+function DepthBar({ side, pct }: { side: Side; pct: number }) {
   return (
     <div
       className={cn(
@@ -163,7 +167,7 @@ function OrderRow({ r, maxQty }: { r: Row; maxQty: number }) {
   const pct = (r.qty / Math.max(1, maxQty)) * 100;
   return (
     <div className="relative">
-      <DepthBar side={r.side === "ask" ? "ask" : "bid"} pct={pct} />
+      <DepthBar side={r.side} pct={pct} />
       <div className="grid grid-cols-3 text-xs py-1">
         <div
           className={cn(
@@ -381,7 +385,7 @@ export default function Page() {
       setBook((prev) => ({
         ...prev,
         bids: [
-          { id: crypto.randomUUID(), side: "bid", price, qty },
+          { id: crypto.randomUUID(), side: "bid" as const, price, qty },
           ...prev.bids,
         ].sort((a, b) => b.price - a.price),
       }));
@@ -389,7 +393,7 @@ export default function Page() {
       setBook((prev) => ({
         ...prev,
         asks: [
-          { id: crypto.randomUUID(), side: "ask", price, qty },
+          { id: crypto.randomUUID(), side: "ask" as const, price, qty },
           ...prev.asks,
         ].sort((a, b) => a.price - b.price),
       }));
