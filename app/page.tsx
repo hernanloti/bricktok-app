@@ -27,11 +27,11 @@ type Trade = {
 const TOKEN = {
   symbol: "BTK-ROSARIO-001",
   name: "Depto. 2 amb. — Pellegrini 1234 (Rosario)",
-  price: 1000, // ARS referencia por token
-  supply: 7000, // 70% tokenizado
+  price: 1000,
+  supply: 7000,
   sellerAccount: "BRICKTOK SAS",
-  rentAPR: 9.2, // % anual estimado por alquiler
-  fees: 0.5, // % fee trading
+  rentAPR: 9.2,
+  fees: 0.5,
 };
 
 function seedBook() {
@@ -53,7 +53,7 @@ function seedBook() {
   return { asks, bids };
 }
 
-// pseudo stream
+// ---------- pseudo stream ----------
 function useSimulatedFeed(
   setBook: React.Dispatch<React.SetStateAction<{ asks: Row[]; bids: Row[] }>>,
   setTrades: React.Dispatch<React.SetStateAction<Trade[]>>
@@ -65,39 +65,28 @@ function useSimulatedFeed(
         if (Math.random() > 0.5 && next.asks.length) {
           next.asks[0] = {
             ...next.asks[0],
-            qty: Math.max(
-              1,
-              next.asks[0].qty + (Math.random() > 0.5 ? 5 : -5)
-            ),
+            qty: Math.max(1, next.asks[0].qty + (Math.random() > 0.5 ? 5 : -5)),
           };
         } else if (next.bids.length) {
           next.bids[0] = {
             ...next.bids[0],
-            qty: Math.max(
-              1,
-              next.bids[0].qty + (Math.random() > 0.5 ? 5 : -5)
-            ),
+            qty: Math.max(1, next.bids[0].qty + (Math.random() > 0.5 ? 5 : -5)),
           };
         }
         return next;
       });
 
       if (Math.random() > 0.7) {
-        setTrades((prev) =>
-          [
-            {
-              id: crypto.randomUUID(),
-              price:
-                TOKEN.price +
-                (Math.random() > 0.5 ? 1 : -1) *
-                  (1 + Math.floor(Math.random() * 3)),
-              qty: Math.floor(1 + Math.random() * 50),
-              time: new Date().toLocaleTimeString("es-AR", { hour12: false }),
-              side: Math.random() > 0.5 ? "buy" : "sell",
-            },
-            ...prev,
-          ].slice(0, 40)
-        );
+        const newTrade: Trade = {
+          id: crypto.randomUUID(),
+          price:
+            TOKEN.price +
+            (Math.random() > 0.5 ? 1 : -1) * (1 + Math.floor(Math.random() * 3)),
+          qty: Math.floor(1 + Math.random() * 50),
+          time: new Date().toLocaleTimeString("es-AR", { hour12: false }),
+          side: (Math.random() > 0.5 ? "buy" : "sell") as "buy" | "sell",
+        };
+        setTrades((prev) => [newTrade, ...prev].slice(0, 40));
       }
     }, 1200);
     return () => clearInterval(t);
@@ -137,15 +126,11 @@ function TokenInfoCard() {
       </div>
       <div className="bg-white rounded-2xl p-4 shadow-sm border">
         <div className="text-xs opacity-70">Oferta (70%)</div>
-        <div className="font-semibold">
-          {formatNumber(TOKEN.supply, 0)} tokens
-        </div>
+        <div className="font-semibold">{formatNumber(TOKEN.supply, 0)} tokens</div>
       </div>
       <div className="bg-white rounded-2xl p-4 shadow-sm border">
         <div className="text-xs opacity-70">Renta estimada</div>
-        <div className="font-semibold">
-          {formatNumber(TOKEN.rentAPR, 1)}% APR
-        </div>
+        <div className="font-semibold">{formatNumber(TOKEN.rentAPR, 1)}% APR</div>
       </div>
     </div>
   );
@@ -169,20 +154,11 @@ function OrderRow({ r, maxQty }: { r: Row; maxQty: number }) {
     <div className="relative">
       <DepthBar side={r.side} pct={pct} />
       <div className="grid grid-cols-3 text-xs py-1">
-        <div
-          className={cn(
-            "tabular-nums",
-            r.side === "ask" ? "text-red-600" : "text-green-600"
-          )}
-        >
+        <div className={cn("tabular-nums", r.side === "ask" ? "text-red-600" : "text-green-600")}>
           $ {formatNumber(r.price, 0)}
         </div>
-        <div className="text-right tabular-nums">
-          {formatNumber(r.qty, 0)}
-        </div>
-        <div className="text-right tabular-nums">
-          $ {formatNumber(r.price * r.qty, 0)}
-        </div>
+        <div className="text-right tabular-nums">{formatNumber(r.qty, 0)}</div>
+        <div className="text-right tabular-nums">$ {formatNumber(r.price * r.qty, 0)}</div>
       </div>
     </div>
   );
@@ -203,9 +179,7 @@ function OrderBook({ book }: { book: { asks: Row[]; bids: Row[] } }) {
         {book.asks
           .slice(0, 14)
           .reverse()
-          .map((a) => (
-            <OrderRow key={a.id} r={a} maxQty={maxAskQty} />
-          ))}
+          .map((a) => <OrderRow key={a.id} r={a} maxQty={maxAskQty} />)}
       </div>
       <div className="px-3 py-2 border-y bg-white">
         <div className="flex items-center justify-between text-xs">
@@ -220,9 +194,7 @@ function OrderBook({ book }: { book: { asks: Row[]; bids: Row[] } }) {
           <div className="text-right">Cantidad</div>
           <div className="text-right">Total</div>
         </div>
-        {book.bids.slice(0, 14).map((b) => (
-          <OrderRow key={b.id} r={b} maxQty={maxBidQty} />
-        ))}
+        {book.bids.slice(0, 14).map((b) => <OrderRow key={b.id} r={b} maxQty={maxBidQty} />)}
       </div>
     </div>
   );
@@ -231,9 +203,7 @@ function OrderBook({ book }: { book: { asks: Row[]; bids: Row[] } }) {
 function RecentTrades({ trades }: { trades: Trade[] }) {
   return (
     <div className="bg-white rounded-2xl p-3 border h-[520px] overflow-auto">
-      <div className="text-xs uppercase opacity-70 mb-2">
-        Operaciones recientes
-      </div>
+      <div className="text-xs uppercase opacity-70 mb-2">Operaciones recientes</div>
       <div className="grid grid-cols-3 text-[10px] uppercase opacity-60 mb-1">
         <div>Hora</div>
         <div className="text-right">Precio</div>
@@ -242,28 +212,17 @@ function RecentTrades({ trades }: { trades: Trade[] }) {
       {trades.map((t) => (
         <div key={t.id} className="grid grid-cols-3 text-xs py-1">
           <div className="tabular-nums">{t.time}</div>
-          <div
-            className={cn(
-              "text-right tabular-nums",
-              t.side === "buy" ? "text-green-600" : "text-red-600"
-            )}
-          >
+          <div className={cn("text-right tabular-nums", t.side === "buy" ? "text-green-600" : "text-red-600")}>
             $ {formatNumber(t.price, 0)}
           </div>
-          <div className="text-right tabular-nums">
-            {formatNumber(t.qty, 0)}
-          </div>
+          <div className="text-right tabular-nums">{formatNumber(t.qty, 0)}</div>
         </div>
       ))}
     </div>
   );
 }
 
-function PlaceOrderPanel({
-  onPlace,
-}: {
-  onPlace: (p: { side: "buy" | "sell"; price: number; qty: number }) => void;
-}) {
+function PlaceOrderPanel({ onPlace }: { onPlace: (p: { side: "buy" | "sell"; price: number; qty: number }) => void }) {
   const [side, setSide] = useState<"buy" | "sell">("buy");
   const [price, setPrice] = useState<number>(TOKEN.price);
   const [qty, setQty] = useState<number>(10);
@@ -274,26 +233,10 @@ function PlaceOrderPanel({
       <div className="flex justify-between items-center mb-3">
         <div className="text-xs uppercase opacity-70">Nueva orden (límite)</div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setSide("buy")}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs border",
-              side === "buy"
-                ? "bg-green-600 text-white border-green-600"
-                : "hover:bg-green-50"
-            )}
-          >
+          <button onClick={() => setSide("buy")} className={cn("px-3 py-1 rounded-full text-xs border", side === "buy" ? "bg-green-600 text-white border-green-600" : "hover:bg-green-50")}>
             Comprar
           </button>
-          <button
-            onClick={() => setSide("sell")}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs border",
-              side === "sell"
-                ? "bg-red-600 text-white border-red-600"
-                : "hover:bg-red-50"
-            )}
-          >
+          <button onClick={() => setSide("sell")} className={cn("px-3 py-1 rounded-full text-xs border", side === "sell" ? "bg-red-600 text-white border-red-600" : "hover:bg-red-50")}>
             Vender
           </button>
         </div>
@@ -302,21 +245,11 @@ function PlaceOrderPanel({
       <div className="grid grid-cols-2 gap-3">
         <label className="text-sm flex flex-col gap-1">
           <span className="opacity-70">Precio (ARS)</span>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            className="border rounded-xl px-3 py-2 bg-white"
-          />
+          <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="border rounded-xl px-3 py-2 bg-white" />
         </label>
         <label className="text-sm flex flex-col gap-1">
           <span className="opacity-70">Cantidad (tokens)</span>
-          <input
-            type="number"
-            value={qty}
-            onChange={(e) => setQty(Number(e.target.value))}
-            className="border rounded-xl px-3 py-2 bg-white"
-          />
+          <input type="number" value={qty} onChange={(e) => setQty(Number(e.target.value))} className="border rounded-xl px-3 py-2 bg-white" />
         </label>
       </div>
 
@@ -324,19 +257,10 @@ function PlaceOrderPanel({
         <div className="opacity-70">Total</div>
         <div className="font-semibold">$ {formatNumber(total, 0)}</div>
       </div>
-      <button
-        onClick={() => onPlace({ side, price, qty })}
-        className={cn(
-          "mt-4 w-full py-2 rounded-xl font-medium shadow-sm",
-          side === "buy" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        )}
-      >
+      <button onClick={() => onPlace({ side, price, qty })} className={cn("mt-4 w-full py-2 rounded-xl font-medium shadow-sm", side === "buy" ? "bg-green-600 text-white" : "bg-red-600 text-white")}>
         {side === "buy" ? "Colocar orden de compra" : "Colocar orden de venta"}
       </button>
-      <p className="text-[11px] opacity-60 mt-2">
-        Fee: {TOKEN.fees}% • Mínimo por orden: $1.000 • Sólo órdenes límite en
-        este MVP.
-      </p>
+      <p className="text-[11px] opacity-60 mt-2">Fee: {TOKEN.fees}% • Mínimo por orden: $1.000 • Sólo órdenes límite en este MVP.</p>
     </div>
   );
 }
@@ -351,9 +275,7 @@ function DepthPreview({ book }: { book: { asks: Row[]; bids: Row[] } }) {
 
   return (
     <div className="bg-white rounded-2xl p-4 border">
-      <div className="text-xs uppercase opacity-70 mb-2">
-        Profundidad (10 niveles)
-      </div>
+      <div className="text-xs uppercase opacity-70 mb-2">Profundidad (10 niveles)</div>
       <div className="flex h-6 w-full overflow-hidden rounded-full border">
         <div className="bg-green-500/70" style={{ width: `${bidPct}%` }} />
         <div className="bg-red-500/70" style={{ width: `${askPct}%` }} />
@@ -371,31 +293,17 @@ export default function Page() {
   const [trades, setTrades] = useState<Trade[]>([]);
   useSimulatedFeed(setBook, setTrades);
 
-  const handlePlace = ({
-    side,
-    price,
-    qty,
-  }: {
-    side: "buy" | "sell";
-    price: number;
-    qty: number;
-  }) => {
+  const handlePlace = ({ side, price, qty }: { side: "buy" | "sell"; price: number; qty: number }) => {
     if (!price || !qty || price < 1 || qty < 1) return;
     if (side === "buy") {
       setBook((prev) => ({
         ...prev,
-        bids: [
-          { id: crypto.randomUUID(), side: "bid" as const, price, qty },
-          ...prev.bids,
-        ].sort((a, b) => b.price - a.price),
+        bids: [{ id: crypto.randomUUID(), side: "bid" as const, price, qty }, ...prev.bids].sort((a, b) => b.price - a.price),
       }));
     } else {
       setBook((prev) => ({
         ...prev,
-        asks: [
-          { id: crypto.randomUUID(), side: "ask" as const, price, qty },
-          ...prev.asks,
-        ].sort((a, b) => a.price - b.price),
+        asks: [{ id: crypto.randomUUID(), side: "ask" as const, price, qty }, ...prev.asks].sort((a, b) => a.price - b.price),
       }));
     }
   };
@@ -405,7 +313,6 @@ export default function Page() {
       <div className="max-w-7xl mx-auto space-y-6">
         <Header />
         <TokenInfoCard />
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <OrderBook book={book} />
